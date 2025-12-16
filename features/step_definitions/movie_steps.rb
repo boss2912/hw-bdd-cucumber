@@ -4,8 +4,9 @@ Given(/the following movies exist/) do |movies_table|
   movies_table.hashes.each do |movie|
     # each returned element will be a hash whose key is the table header.
     # you should arrange to add that movie to the database here.
+    Movie.create!(movie)
   end
-  pending "Fill in this step in movie_steps.rb"
+  # pending "Fill in this step in movie_steps.rb"
 end
 
 Then(/(.*) seed movies should exist/) do |n_seeds|
@@ -18,7 +19,12 @@ end
 Then(/^I should see "(.*)" before "(.*)" in the movie list$/) do |e1, e2|
   #  ensure that that e1 occurs before e2.
   #  page.body is the entire content of the page as a string.
-  pending "Fill in this step in movie_steps.rb"
+  expect(page.body).to match(/#{e1}.*#{e2}/m)
+  # pending "Fill in this step in movie_steps.rb"
+end
+
+Then(/^I should see "(.*)" before "(.*)"$/) do |e1, e2|
+  expect(page.body).to match(/#{e1}.*#{e2}/m)
 end
 
 
@@ -27,19 +33,35 @@ end
 
 When(/I check the following ratings: (.*)/) do |rating_list|
   # HINT: use String#split to split up the rating_list, then
-  #   iterate over the ratings and reuse the "When I check..." or
-  #   "When I uncheck..." steps in lines 89-95 of web_steps.rb
-  pending "Fill in this step in movie_steps.rb"
+  rating_list.split(/,\s*/).each do |rating|
+    step %{I check "ratings[#{rating}]"}
+  end
+end
+
+When(/I uncheck the following ratings: (.*)/) do |rating_list|
+  rating_list.split(/,\s*/).each do |rating|
+    step %{I uncheck "ratings[#{rating}]"}
+  end
 end
 
 Then(/^I should (not )?see the following movies: (.*)$/) do |no, movie_list|
-  # Take a look at web_steps.rb Then /^(?:|I )should see "([^"]*)"$/
-  pending "Fill in this step in movie_steps.rb"
+  movie_list.split(/,\s*/).each do |movie_title|
+    # "no" จะเป็น "not " ถ้า Scenario ใช้คำว่า "I should not see..."
+    if no
+      # ถ้ามี "not" ให้ตรวจสอบว่าไม่พบเนื้อหา
+      expect(page).to have_no_content(movie_title)
+    else
+      # ถ้าไม่มี "not" ให้ตรวจสอบว่าพบเนื้อหา
+      expect(page).to have_content(movie_title)
+    end
+  end
 end
 
 Then(/^I should see all the movies$/) do
-  # Make sure that all the movies in the app are visible in the table
-  pending "Fill in this step in movie_steps.rb"
+  # รับจำนวนภาพยนตร์ทั้งหมดจากฐานข้อมูล
+  num_movies = Movie.count
+  # นับจำนวนรายการภาพยนตร์ที่ขึ้นแสดงภายใน div#movies
+  expect(page.all('#movies > div').count).to eq num_movies
 end
 
 ### Utility Steps Just for this assignment.
