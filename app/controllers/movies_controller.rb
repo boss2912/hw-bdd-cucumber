@@ -3,30 +3,28 @@ class MoviesController < ApplicationController
 
   # GET /movies or /movies.json
   def index
-    @all_ratings = Movie.all_ratings
-  
-    raw_ratings = params[:ratings]
-  
-    raw_ratings = raw_ratings.keys if raw_ratings.is_a?(ActionController::Parameters) ||
-                                      raw_ratings.is_a?(Hash)
-  
-    if raw_ratings.present?
-      @ratings_to_show = Array(raw_ratings).reject(&:blank?)
+    @all_ratings = Movie.distinct.pluck(:rating).sort
+    # determine ratings to show (params override session)
+    @ratings_to_show = if params[:ratings]
+                         params[:ratings].keys
+                       elsif session[:ratings]
+                         session[:ratings]
+                       else
+                         @all_ratings
+                       end
+
+    @sort_by = params[:sort_by] || session[:sort_by]
+
+    # keep session in sync or redirect to RESTful URL if needed
+    if params[:ratings] || params[:sort_by]
       session[:ratings] = @ratings_to_show
-    else
-      @ratings_to_show = session[:ratings] || @all_ratings
-    end
-  
-    sort_param = params[:sort_by].presence_in(%w[title release_date])
-  
-    if sort_param
-      @sort_by = sort_param
       session[:sort_by] = @sort_by
-    else
-      @sort_by = session[:sort_by] || "title"
+    elsif session[:ratings] || session[:sort_by]
+      redirect_to movies_path(ratings: Hash[session[:ratings].map { |r| [r, 1] }], sort_by: session[:sort_by]) and return
     end
-  
-    @movies = Movie.with_ratings(@ratings_to_show, @sort_by)
+
+    @movies = Movie.where(rating: @ratings_to_show)
+    @movies = @movies.order(@sort_by) if @sort_by.present?
   end
   
 
