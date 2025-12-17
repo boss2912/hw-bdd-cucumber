@@ -1,22 +1,9 @@
-<div id="<%= dom_id movie %>">
-  <p>
-    <strong>Title:</strong>
-    <%= movie.title %>
-  </p>
-
-  <p>
-    <strong>Rating:</strong>
-    <%= movie.rating %>
-  </p>
-
-  <p>
-    <strong>Description:</strong>
-    <%= movie.description %>
-  </p>
-
-  <p>
-    <strong>Release date:</strong>
-    <%= movie.release_date %>
-  </p>
-
+<div class="movie-card" id="<%= dom_id movie %>">
+  <h5><%= movie.title %></h5>
+  <p><strong>Rating:</strong> <%= movie.rating %></p>
+  <% if movie.description.present? %>
+    <p><strong>Description:</strong> <%= truncate(movie.description, length: 120) %></p>
+  <% end %>
+  <p><strong>Release date:</strong> <%= movie.release_date %></p>
+  <p><%= link_to "Show", movie, class: 'btn btn-link p-0' %></p>
 </div>
